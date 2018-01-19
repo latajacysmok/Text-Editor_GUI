@@ -2,16 +2,10 @@ from tkinter import *
 from tkinter import filedialog, Text, simpledialog, messagebox, Frame, Entry, INSERT
 import tkinter.scrolledtext as ScrolledText
 from tkinter.filedialog import asksaveasfilename
+from tkinter.font import Font, families
+import tkinter.colorchooser
+import tkinter as tk
 
-app = Tk()
-app.title("Text Editor")
-app.geometry("400x380")
-textArea = ScrolledText.ScrolledText(app, width = 100,
-                                     height = 80,
-                                     font=("Andale Mono", 12),
-                                     highlightthickness=0,
-                                     bd=2)
-textArea.pack()
 
 def new():
     if len(textArea.get("1.0", END + '-1c')) > 0:
@@ -72,10 +66,108 @@ def findInFile():
         Label = messagebox.showinfo("Results", " Nope, sorry mate. ")
 
 def undo():
-    textArea.edit_undo()
+    try:
+        textArea.edit_undo()
+    except TclError:
+        pass
 
 def redo():
-    textArea.edit_redo()
+    try:
+        textArea.edit_redo()
+    except TclError:
+        pass
+
+def about():
+    label = messagebox.showinfo("About", "A Python alternative to Notepad")
+
+def help():
+    label = messagebox.showinfo("Help", "How can I help you?:)")
+
+def color():
+    try:
+        (rgb, hx) = tkinter.colorchooser.askcolor()
+        textArea.tag_add('color', 'sel.first', 'sel.last')
+        textArea.tag_configure('color', foreground=hx)
+    except TclError:
+        pass
+
+def bold():
+    try:
+        current_tags = textArea.tag_names("sel.first")
+        if "bold" in current_tags:
+            textArea.tag_remove("bold", "sel.first", "sel.last")
+        else:
+            textArea.tag_add("bold", "sel.first", "sel.last")
+            bold_font = Font(textArea, textArea.cget("font"))
+            bold_font.configure(weight="bold")
+            textArea.tag_configure("bold", font=bold_font)
+    except TclError:
+        pass
+
+def underline():
+    try:
+        current_tags = textArea.tag_names("sel.first")
+        if "underline" in current_tags:
+            textArea.tag_remove("underline", "sel.first", "sel.last")
+        else:
+            textArea.tag_add("underline", "sel.first", "sel.last")
+            underline_font = Font(textArea, textArea.cget("font"))
+            underline_font.configure(underline=1)
+            textArea.tag_configure("underline", font=underline_font)
+    except TclError:
+        pass
+
+def italic():
+    try:
+        current_tags = textArea.tag_names("sel.first")
+        if "italic" in current_tags:
+            textArea.tag_remove("italic", "sel.first", "sel.last")
+        else:
+            textArea.tag_add("italic", "sel.first", "sel.last")
+            italic_font = Font(textArea, textArea.cget("font"))
+            italic_font.configure(slant="italic")
+            textArea.tag_configure("italic", font=italic_font)
+    except TclError:
+        pass
+
+def choose_size():
+    def size():
+        try:
+            enter_size.get() == int(enter_size.get())
+            textArea.config(font=("Arial", enter_size.get()))
+        except ValueError:
+            messagebox.showinfo("Error", "Wrong values!!! Use numbers.")
+
+    t = tk.Toplevel(app)
+    font_size = tk.Label(t, text='Font Size: ')
+    font_size.grid(row=0, column=0, sticky='nsew')
+    enter_size = tk.Entry(t)
+    enter_size.grid(row=0, column=1, sticky='nsew')
+    quit_btn = tk.Button(t, text='Quit',
+                         command=t.destroy)
+    ok_btn = tk.Button(t, text='Apply Changes',
+                      command= size)
+    ok_btn.grid(row=1, column=1, sticky='nsew')
+    quit_btn.grid(row=1, column=0, sticky='nsew')
+
+#====================
+
+app = tk.Tk()
+
+app.title("Text Editor")
+app.geometry("400x380")
+textArea = ScrolledText.ScrolledText(app, width = 100,
+                                     height = 80,
+                                     font=("Andale Mono", 12),
+                                     highlightthickness=0,
+                                     bd=2)
+textArea.pack()
+
+# text = tk.Text(app)
+# text.pack(expand=1, fill='both')
+
+
+#===================
 
 menu = Menu(app)
 app.config(menu=menu)
@@ -87,9 +179,6 @@ file_menu.add_command(label="Open", command=open_file)
 file_menu.add_separator()
 file_menu.add_command(label="Save", command=save)
 file_menu.add_command(label="Close", command=close)
-
-
-
 
 edit_menu = Menu(menu)
 w = menu.widgetName
@@ -103,6 +192,17 @@ edit_menu.add_command(label="Copy", command=copy)
 edit_menu.add_command(label="Paste", command=paste)
 edit_menu.add_command(label="Delete", command=delete)
 edit_menu.add_separator()
+edit_menu.add_command(label="Color", command=color)
+edit_menu.add_command(label="Bold", command=bold)
+edit_menu.add_command(label="Underline", command=underline)
+edit_menu.add_command(label="Italic", command=italic)
+edit_menu.add_command(label="Size", command=choose_size)
+edit_menu.add_separator()
 edit_menu.add_command(label="Select All", command=select_all)
+
+help_menu = Menu(menu)
+menu.add_cascade(label="Help", menu=help_menu)
+help_menu.add_command(label="Help", command=help)
+help_menu.add_command(label="About", command=about)
 
 app.mainloop()
